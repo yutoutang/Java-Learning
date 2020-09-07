@@ -277,21 +277,104 @@ ChannelOutboundHandler 出站处理 I/O
 
 
 
-
-
 #### Pipeline
 
 ChannelPipeline 是一个 Handler 集合 
 
 
 
+#### ChannelHandlerContext
+
+writeAndFlush 写并刷新通道
 
 
 
+####  ChannelOption
+
+SO_BACKLOG：对应 TPC/IP 协议 listen 函数中的 backlog 参数，初始化服务器可连接队列大小
 
 
 
+#### EventLoopGroup
 
+1. EventLoopGroup 一组 EventLoop 的抽象，netty 工作时会有多个 EventLoop工作，每个 EventLoop 管理一个selector 实例
+2. bossGroup （单线程） 负责接受客户端的连接（触发 OP_ACCEPT 事件）并将 SocketChannel 交给 workGroup（多线程 线程数量一般为 cpu 核数的两倍） 轮询进行 （利用 next 选择） I/O 处理
+
+
+
+#### UnPooled
+
+##### ByteBuf
+
+```java
+public static void main(String[] args) {
+    // 创建一个 ByteBuf
+    // 1. 创建对象，该对象包含一个数组 arr，是一个 byte[10]
+    // 2. netty 的 buf 不需要使用 flip 进行反转 底层了维护 readerIndex （下一个读的位置） 和 writeIndex （下一个写入的位置 i+1）
+    // 3. buf 的三个区域 readerIndex writeIndex capacity
+    // 0 ---- readerIndex 可读的区域
+    // readerIndex --- writeIndex 可写的区域
+    // writeIndex --- capacity 容量
+    ByteBuf buf = Unpooled.buffer(10);
+
+    for (int i = 0; i < 10; i++) {
+        buf.writeByte(i);
+    }
+
+    for (int i = 0; i < buf.capacity(); i++) {
+        System.out.println(buf.readByte());
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    // ByteBuf api 测试
+    ByteBuf buf = Unpooled.copiedBuffer("hello world", StandardCharsets.UTF_8);
+
+    if (buf.hasArray()){
+        byte[] content = buf.array();
+        System.out.println(buf.capacity()); // 33
+        String s = new String(content, StandardCharsets.UTF_8);
+        System.out.println(s); // hello world 后面 ASCII 为0的字符也输出了
+        System.out.println(buf.getCharSequence(0, buf.writerIndex(), StandardCharsets.UTF_8)); // 推荐这种方式去读 hello world
+        System.out.println("bytebuf=" + buf);
+        System.out.println(buf.arrayOffset());  // 0
+        System.out.println(buf.readerIndex());  // 0
+        System.out.println(buf.writerIndex());  // 11
+        System.out.println(buf.readableBytes());  // 可读的字节数 = 11
+    }
+}
+```
+
+
+
+#### Channel中的msg 
+
+##### 使用 SimpleChannelInboundHandler 来作为 handler 的父类需要注意：
+
+Netty 中 服务端和客户端再调用 writeAndFlush 发送数据时，默认并不是 String 类，需要对通道中的发送数据进行编解码，否则无法接受一端发送数据
+
+```
+// 客户端和服务端 都要向 pipeline 中加入 编解码器
+pipeline.addLast("decoder", new StringDecoder());
+pipeline.addLast("encoder", new StringEncoder());
+```
+
+
+
+#### 心跳机制
+
+```java
+public IdleStateHandler(
+        int readerIdleTimeSeconds, // 多长时间没有读，发送心跳检测包检测是否有连接
+        int writerIdleTimeSeconds, // 多长时间没有写，发送心跳检测包检测是否有连接
+        int allIdleTimeSeconds) // 多长时间没有读、写 {
+
+    this(readerIdleTimeSeconds, writerIdleTimeSeconds, allIdleTimeSeconds,
+         TimeUnit.SECONDS);
+}
+```
 
 
 

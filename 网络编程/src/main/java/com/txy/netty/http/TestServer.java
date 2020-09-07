@@ -2,6 +2,7 @@ package com.txy.netty.http;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.ServerSocketChannel;
@@ -18,7 +19,9 @@ public class TestServer {
 
             ServerBootstrap bootstrap = new ServerBootstrap();
 
-            bootstrap.group(bossGroup, workGroup).channel(NioServerSocketChannel.class).childHandler(new TestServerInitializer());
+            bootstrap.group(bossGroup, workGroup).channel(NioServerSocketChannel.class)
+                    .option(ChannelOption.SO_BACKLOG,18)
+                    .childHandler(new TestServerInitializer());
 
             ChannelFuture channelFuture = bootstrap.bind(6688).sync();
 

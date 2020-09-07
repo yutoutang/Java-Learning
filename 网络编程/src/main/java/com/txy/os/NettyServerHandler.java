@@ -13,6 +13,8 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        System.out.println("服务器读取的线程:\t" + Thread.currentThread().getName());
+        System.out.println("channel:\t" + ctx.channel());
         ByteBuf buf = (ByteBuf)msg;
         System.out.println(ctx.channel().remoteAddress() + ":" + buf.toString(CharsetUtil.UTF_8));
     }

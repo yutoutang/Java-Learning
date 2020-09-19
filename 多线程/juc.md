@@ -445,6 +445,16 @@ public boolean add(E e) {
 
 
 
+#### ReentrantLock 和 Synchonized 区别
+
+1. ReentrantLock 可以中断的获取锁（lockInterruptibly）
+2. ReentrantLock 可尝试非阻塞的获取锁
+3. ReentrantLock 可以超时获取锁 （tryLock(timeout, unit)）
+4. ReentrantLock 可实现公平锁
+5. ReentrantLock 可以绑定多个 Condition 对象
+
+
+
 #### 可重入锁（递归锁）
 
 ##### ReentrantLock、Synchronized是可重入锁
@@ -534,7 +544,7 @@ public static void main(String[] args) throws Exception {
 
 
 
-#### 自选锁（spinLock）
+#### 自旋锁（spinLock）
 
 尝试获取锁的线程不会立即阻塞，而是采用循环的方式尝试获取锁，可以减少上下文切换，但是循环会消耗CPU
 
@@ -619,7 +629,7 @@ public static void main(String[] args) {
 
 #### 读写锁
 
-独占锁：写锁 该锁·一次只能被一个线程持有 ReentrantLock、Synchronized
+独占锁：写锁 该锁一次只能被一个线程持有 ReentrantLock、Synchronized
 
 共享锁：读锁 该锁被多个线程持有
 
@@ -627,7 +637,7 @@ public static void main(String[] args) {
 
 ##### ReentranReadWriteLock
 
-读锁的共享锁可保证并发读是非常高效的，读写、写对、写写是互斥
+读锁的共享锁可保证并发读是非常高效的，读读、写读、写写是互斥
 
 ```java
 /**
@@ -787,7 +797,7 @@ public static void main(String[] args) {
 
 控制线程的并发数量
 
-控制多个共享资源的互斥使用
+控制多个进程对共享资源的访问。
 
 ```java
 /**
@@ -835,17 +845,38 @@ public static void main(String[] args) {
 
 
 
+#### wait、notify、notifyAll
+
+**wait**: 只能在同步方法或同步块中使用 wait。在执行 wait 方法后，当前线程释放锁。调用了 wait 函数的线程会一直等待，直到有其他线程调用了同一个对象的 notify 或 notifyAll 方法才能被唤醒，被唤醒并不代表立刻获得锁，要等待执行 notify 方法的线程执行完，即退出 synchonized 代码块后，当前线程才会释放锁，而呈 wait 状态的线程才能获取该对象锁。
+
+**notify**：随机唤醒一个正在等待的线程；
+
+**notifyAll**：唤醒所有正在等待的线程。
 
 
 
+#### ThreadLocal
 
+ThreadLocl 可以实现绑定自己的值，即每个线程有各自独立的副本而互相不受影响。用来解决数据因并非产生不一致的问题（并非解决并发访问共享资源的问题 Semaphore），为每个线程中的并发访问的数据提供一个副本，通过副本来运行业务，导致了内存的消耗，但大大减少了线程同步带来的线程消耗，也减少了并发控制的复杂度
 
+四个方法：get、set、remove、initalValue
 
-
-
-
-
-
+```java
+// 底层使用 map 确保每次 get 到方法来自同一个线程
+public T get() {
+    Thread t = Thread.currentThread();
+    ThreadLocalMap map = getMap(t);
+    if (map != null) {
+        ThreadLocalMap.Entry e = map.getEntry(this);
+        if (e != null) {
+            @SuppressWarnings("unchecked")
+            T result = (T)e.value;
+            return result;
+        }
+    }
+    return setInitialValue();
+}
+```
 
 
 

@@ -29,5 +29,7 @@ public class HeartBeatHandler extends ChannelInboundHandlerAdapter {
             System.out.println("服务器做相应处理");
             ctx.channel().close();
         }
+
+        
     }
 }

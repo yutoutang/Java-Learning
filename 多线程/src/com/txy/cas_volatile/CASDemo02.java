@@ -40,7 +40,7 @@ class MyData{ // MyData.java => MyData.class => JVM字节码
  *       * 加sync
  *       * AtomicInteger
  */
-public class demo1 {
+class demo1 {
     // volatile保证原子性，并解决
     private static void setAtomic() {
         MyData myData = new MyData();

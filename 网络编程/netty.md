@@ -174,6 +174,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ctx.channel().close();
     }
+}
 ```
 
 ##### 客户端
@@ -375,6 +376,50 @@ public IdleStateHandler(
          TimeUnit.SECONDS);
 }
 ```
+
+
+
+#### WebSocket 长连接
+
+ HttpServerCodec：封装 http 协议
+
+ChunkedWriteHandle、
+
+HttpObjectAggregator：聚合
+
+```java
+b.group(bossGroup, workGroup).channel(NioServerSocketChannel.class)
+        .handler(new LoggingHandler(LogLevel.INFO))
+        .childHandler(new ChannelInitializer<SocketChannel>() {
+            @Override
+            protected void initChannel(SocketChannel ch) throws Exception {
+                ChannelPipeline pipeline = ch.pipeline();
+                // http 协议解析
+                pipeline.addLast(new HttpServerCodec());
+                // 当以 http 协议发送大量数据时，会产生多次 http 请求，利用 ChunkedWriteHandler HttpObjectAggregator 将请求封装
+                pipeline.addLast(new ChunkedWriteHandler());
+                pipeline.addLast(new HttpObjectAggregator(8192));
+                // http - ws
+                pipeline.addLast(new WebSocketServerProtocolHandler("/hello"));
+                pipeline.addLast(new MyWebSocketServerHandler());
+
+            }
+        });
+
+public class MyWebSocketServerHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
+        System.out.println("服务器接受消息" + msg.text());
+        ctx.channel().writeAndFlush(new TextWebSocketFrame("[Server]" + LocalDate.now() + ":" + msg.text()));
+    }
+}
+```
+
+
+
+
+
+
 
 
 

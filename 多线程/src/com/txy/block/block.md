@@ -64,7 +64,11 @@ pull(e, time)
 
 1.0 sync、wait、nofify
 
-2.0 lock、await、Singal
+2.0 lock、await、Singal 使用 Condition
+
+一个 **Condition** 和一个 Lock 关联在一起，就像一个条件队列和一个内置锁相关联类似，并提供更丰富的功能：
+
+在每个锁上可存在多个等待、条件等待可以是中断或不中断、基于时限的等待、以及公平的或非公平的队列操作。
 
 ```java
 /**
@@ -505,7 +509,7 @@ System.out.println(Runtime.getRuntime().availableProcessors());
 
 #### Callable
 
-类似于Runnable接口
+类似于 Runnable 接口，解决 Runnable 接口无法返回值或抛出异常的问题，大部分任务存在延迟计算，例如：数据库查询、从网络上获取资源或某个复杂计算的功能，Callable 接口可以实现。
 
 ```java
 class MyThread implements Callable<Integer>{

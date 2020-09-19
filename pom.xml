@@ -11,6 +11,7 @@
     <modules>
         <module>JVM</module>
         <module>网络编程</module>
+        <module>proto_test</module>
     </modules>
 
 
